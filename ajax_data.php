@@ -83,7 +83,7 @@ try{
 		throw new Exception(mysqli_error($redpa_new_conn),0);
 	}*/
 	$new_db_record_qry = "select count(*) as cnt_records from ".$table_name;
-	$result_new_db_record=mysqli_query($redpa_new_conn,$new_db_record_qry);
+	//$result_new_db_record=mysqli_query($redpa_new_conn,$new_db_record_qry);
 	$result_new_db_record=$redpa_new_conn->query($new_db_record_qry);
 
 	if(empty($result_new_db_record)){
@@ -109,6 +109,9 @@ try{
 	//$old_db_records=mysqli_fetch_array($result_old_db_record);
 	$old_db_records=$result_old_db_record->fetch_assoc();
 	$old_db_records_cnt=$old_db_records['cnt_records'];	
+
+	$redpa_old_conn->close();
+	$redpa_new_conn->close();
 
 	if($new_db_records_cnt < $old_db_records_cnt){
 		header("Location: " . "http://" . $_SERVER['HTTP_HOST'] . "/mysql_script/ajax_data.php");
