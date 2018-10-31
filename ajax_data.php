@@ -20,9 +20,11 @@ $isuccess=1;
 $table_name = 'leads';
 
 $get_coupons_code_qry = "select id from ".$table_name." order by id desc limit 1";
-$result_code=mysqli_query($redpa_new_conn,$get_coupons_code_qry);
+//$result_code=mysqli_query($redpa_new_conn,$get_coupons_code_qry);
+$result_code=$redpa_new_conn->query($get_coupons_code_qry);
 if(!empty($result_code)){
-	$db_coupon_code_qry=mysqli_fetch_array($result_code);
+	//$db_coupon_code_qry=mysqli_fetch_array($result_code);
+	$db_coupon_code_qry=$result_code->fetch_assoc();
 	if($db_coupon_code_qry['id'] > 0){
 		$start = $db_coupon_code_qry['id'];
 	}	
@@ -34,7 +36,8 @@ if(!empty($result_code)){
 try{
 
 	$get_table_data = "select * from ".$table_name." limit ".$start.", ".$end;
-	$result=mysqli_query($redpa_old_conn,$get_table_data);
+	//$result=mysqli_query($redpa_old_conn,$get_table_data);
+	$result=$redpa_old_conn->query($get_table_data);
 
 	if ($result->num_rows > 0) {
 		while($row = $result->fetch_assoc()) {
@@ -81,6 +84,7 @@ try{
 	}*/
 	$new_db_record_qry = "select count(*) as cnt_records from ".$table_name;
 	$result_new_db_record=mysqli_query($redpa_new_conn,$new_db_record_qry);
+	$result_new_db_record=$redpa_new_conn->query($new_db_record_qry);
 
 	if(empty($result_new_db_record)){
 		$msg = 'new database connection error';
@@ -88,11 +92,13 @@ try{
 		throw new Exception($msg,0);
 	}
 
-	$new_db_records=mysqli_fetch_array($result_new_db_record);
+	//$new_db_records=mysqli_fetch_array($result_new_db_record);
+	$new_db_records=$result_new_db_record->fetch_assoc();
 	$new_db_records_cnt=$new_db_records['cnt_records'];
 
 	$old_db_record_qry = "select count(*) as cnt_records from ".$table_name;
-	$result_old_db_record=mysqli_query($redpa_old_conn,$old_db_record_qry);
+	//$result_old_db_record=mysqli_query($redpa_old_conn,$old_db_record_qry);
+	$result_old_db_record=$redpa_old_conn->query($old_db_record_qry);
 
 	if(empty($result_old_db_record)){
 		$msg = 'old database connection error';
@@ -100,7 +106,8 @@ try{
 		throw new Exception($msg,0);
 	}
 
-	$old_db_records=mysqli_fetch_array($result_old_db_record);
+	//$old_db_records=mysqli_fetch_array($result_old_db_record);
+	$old_db_records=$result_old_db_record->fetch_assoc();
 	$old_db_records_cnt=$old_db_records['cnt_records'];	
 
 	if($new_db_records_cnt < $old_db_records_cnt){
