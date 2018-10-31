@@ -17,12 +17,17 @@ if(isset($_GET["table_name"]) && $_GET["table_name"]){
 	if(!empty($result_code)){
 		$db_coupon_code_qry=mysqli_fetch_array($result_code);
 		if($db_coupon_code_qry['id'] > 0){
-			$start = $db_coupon_code_qry['id'];
+			$last_id = $db_coupon_code_qry['id'];
 		}	
 	}else{
 		echo "0 results";exit;
 	}
-	$get_table_data = "select * from ".$table_name." limit ".$start.", ".$end;
+	if(isset($last_id)){
+		$get_table_data = "select * from ".$table_name." WHERE id > $last_id ORDER BY id ASC limit ".$start.", ".$end;
+	} else {
+		$get_table_data = "select * from ".$table_name." ORDER BY id ASC limit ".$start.", ".$end;
+	}
+	
 	$result=mysqli_query($redpa_old_conn,$get_table_data);
 
 	if ($result->num_rows > 0) {
@@ -53,12 +58,14 @@ if(isset($_GET["table_name"]) && $_GET["table_name"]){
 	}
 	$redpa_old_conn->close();
 	$redpa_new_conn->close();
-	header("Location: http://localhost/databasemigrationscript/?table_name=".$table_name);
-	exit;
 
 }else{
 	throw new Exception("Please provide table name in query string \"table_name\"", 1);	
 }
-exit("Here");
-
 ?>
+
+<script type="text/javascript">
+	setTimeout(function(){
+		window.location.reload();
+	},5000);
+</script>
