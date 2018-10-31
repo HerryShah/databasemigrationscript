@@ -33,56 +33,42 @@ if(!empty($result_code)){
 //$start = 50;
 try{
 
-	$table_columns_qry = "select column_name from information_schema.columns where table_schema='1026903_redpapaz' AND table_name='$table_name'";
-	$result_table_columns = mysqli_query($redpa_old_conn,$table_columns_qry);
-
-	if ($result_table_columns->num_rows > 0) {
-	    while($row = mysqli_fetch_array($result_table_columns)) {
-		    		$columns_array[] = $row['column_name'];
-	    }
-	} else {
-	    $msg = '0 results';
-		throw new Exception($msg,0);
-	}
-	
 	$get_table_data = "select * from ".$table_name." limit ".$start.", ".$end;
 	$result=mysqli_query($redpa_old_conn,$get_table_data);
 
-	//$insert_qry = "INSERT INTO ".$table_name." (".implode(",", $columns_array).") values ";
-
 	if ($result->num_rows > 0) {
 		while($row = $result->fetch_assoc()) {
-			$individual_array[] = $row;
-		}
-		
-		foreach ($individual_array as $key_outer => $value_outer) {
 			
-			foreach ($columns_array as $key => $value) {
-				if(isset($individual_array[$key_outer][$value])){
-	        		
-	        		$dyn_columns_array[$key_outer][] = "'".$redpa_new_conn->real_escape_string($individual_array[$key_outer][$value])."'";	
-	        		
-	        	}else{
-	        		$dyn_columns_array[$key_outer][] = 'NULL';
-	        	}
-	        	
-	    	}
-	    	$valuesArrString = '';
-	    	$valuesArrString = "(".implode(',', $dyn_columns_array[$key_outer]).")";
-	    	
-	    	$insert_qry123 = "INSERT INTO ".$table_name." (".implode(",", $columns_array).") values ";
-	    	$insert_qry = $insert_qry123 . $valuesArrString;
-	    	
-			$suc_insert_qry = $redpa_new_conn->query($insert_qry);
+			$columns_key = array_keys($row);
+			$columns_value = array_values($row);
+
+			foreach ($columns_value as $key => $value) {
+				
+				if(isset($value)){
+					$columns_value[$key] = "'".$redpa_new_conn->real_escape_string($value)."'";
+				}else{
+					$columns_value[$key] = 'NULL';
+				}
+
+			}
+			
+			$insert_qry123 = "INSERT INTO ".$table_name." (".implode(",", $columns_key).") values ";
+			$valuesArrString = '';
+	    	$valuesArrString = "(".implode(',', $columns_value).")";
+			$insert_qry = $insert_qry123 . $valuesArrString;
+			
+	    	$suc_insert_qry = $redpa_new_conn->query($insert_qry);
 
 			if(!$suc_insert_qry){
 				$msg = $insert_qry;	
 				wh_log($msg,$table_name);
 			}
-
+			
 		}
+		
 	} else {
-	    $msg = '0 results';
+	    $msg = 'No records in old database';
+	    wh_log($msg,$table_name);
 		throw new Exception($msg,0);
 	}
 	
@@ -95,16 +81,29 @@ try{
 	}*/
 	$new_db_record_qry = "select count(*) as cnt_records from ".$table_name;
 	$result_new_db_record=mysqli_query($redpa_new_conn,$new_db_record_qry);
+
+	if(empty($result_new_db_record)){
+		$msg = 'new database connection error';
+		wh_log($msg,$table_name);
+		throw new Exception($msg,0);
+	}
+
 	$new_db_records=mysqli_fetch_array($result_new_db_record);
 	$new_db_records_cnt=$new_db_records['cnt_records'];
 
 	$old_db_record_qry = "select count(*) as cnt_records from ".$table_name;
 	$result_old_db_record=mysqli_query($redpa_old_conn,$old_db_record_qry);
+
+	if(empty($result_old_db_record)){
+		$msg = 'old database connection error';
+		wh_log($msg,$table_name);
+		throw new Exception($msg,0);
+	}
+
 	$old_db_records=mysqli_fetch_array($result_old_db_record);
 	$old_db_records_cnt=$old_db_records['cnt_records'];	
 
 	if($new_db_records_cnt < $old_db_records_cnt){
-
 		header("Location: " . "http://" . $_SERVER['HTTP_HOST'] . "/mysql_script/ajax_data.php");
 	}
 	$msg = 'transfer data successfully completed';
